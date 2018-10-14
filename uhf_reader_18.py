@@ -5,15 +5,22 @@ import readline
 import serial
 import sys
 
-class UICmdInfo:
+class UICmd:
     def __init__(self):
-        self.cmd = "info"
-        self.args = 0
         self.descArgs = ""
-        self.descCmd = "gets reader settings (freq, power, scantime)" 
+        self.args = 0
 
     def validate(self, args, ui):
-        return True 
+        return True
+
+    def getUsage(self):
+        return (self.cmd + " " + self.descArgs).ljust(16) + self.descCmd
+
+class UICmdInfo(UICmd):
+    def __init__(self):
+        super().__init__()
+        self.cmd = "info"
+        self.descCmd = "gets reader settings (freq, power, scantime)"
 
     def run(self, args, reader, ui):
         msg = reader.getReaderInfo()
@@ -23,8 +30,9 @@ class UICmdInfo:
         ui.printMsg("power     : " + str(msg[3]) + " dBm")
         ui.printMsg("scan time : " + str(msg[4]) + " s")
 
-class UICmdSetPower:
+class UICmdSetPower(UICmd):
     def __init__(self):
+        super().__init__()
         self.cmd = "power"
         self.args = 1
         self.descArgs = "0-30"
@@ -37,18 +45,24 @@ class UICmdSetPower:
         reader.setPower(int(args[0]))
         return
 
-class UICmdHelp:
+class UICmdQuit(UICmd):
     def __init__(self):
-        self.cmd = "help"
-        self.args = 0
-        self.descArgs = ""
-        self.descCmd = "print"
-
-    def validate(self, args, ui):
-        return True
+        super().__init__()
+        self.cmd = "quit"
+        self.descCmd = "terminates this prompt"
 
     def run(self, args, reader, ui):
-        ui.printMsg(ui.getHelp())
+        ui.quit()
+
+
+class UICmdHelp(UICmd):
+    def __init__(self):
+        super().__init__()
+        self.cmd = "help"
+        self.descCmd = "print commands and usage"
+
+    def run(self, args, reader, ui):
+        ui.puts(ui.getHelp())
  
 
 class UI:
@@ -57,7 +71,11 @@ class UI:
         self.addCommand(UICmdInfo())
         self.addCommand(UICmdSetPower())
         self.addCommand(UICmdHelp())
+        self.addCommand(UICmdQuit())
         self.reader = reader
+
+        readline.parse_and_bind('tab: complete')
+        readline.parse_and_bind('set editing-mode vi')
 
     def addCommand(self, cmd):
         self.commands[cmd.cmd] = cmd
@@ -69,17 +87,30 @@ class UI:
             if len(args[1:]) == cmd.args and cmd.validate(args[1:], self):
                 cmd.run(args[1:], self.reader, self)
             else:
-                self.printMsg(cmd.cmd + " " + cmd.descArgs + "\t\t" + cmd.descCmd)
+                self.printMsg(cmd.getUsage())
 
     def getHelp(self):
+        usage = ""
         for k, v in self.commands.items():
-            print(k)
+            usage = usage + v.getUsage() + "\n"
+        return usage
 
     def quit(self):
+        self.printMsg("bye")
         sys.exit(0)
+
+    def puts(self, text):
+        print(text, end='')
 
     def printMsg(self, msg):
         print(msg)
+
+    def run(self):
+        while True:
+            try:
+                self.input(input('> '))
+            except EOFError:
+                self.quit()
         
 
 class UHFReader18:
@@ -123,20 +154,10 @@ class UHFReader18:
         #print(reply.hex())
         return
 
+
 uhfr = UHFReader18()
 
 uhfr.openPort("/dev/ttyUSB1", 57600)
 
+UI(uhfr).run()
 
-readline.parse_and_bind('tab: complete')
-readline.parse_and_bind('set editing-mode vi')
-
-ui = UI(uhfr)
-
-while True:
-    line = input('> ')
-    if line == '?':
-        break
-    ui.input(line)
-	
-#print(uhfr.getReaderInfo())
