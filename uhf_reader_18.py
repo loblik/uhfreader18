@@ -269,24 +269,28 @@ class UHFReader18:
     def get_work_mode(self, addr=0xff):
         self.send(addr, self.GET_WORK_MODE)
         recv = self.recv()
-        mode = [ self.MODE_ANSWER, self.MODE_ACTIVE, self.MODE_TRIG_LOW, self.MODE_TRIG_HIGH ][recv[7]]
+        mode = [self.MODE_ANSWER, self.MODE_ACTIVE, self.MODE_TRIG_LOW, self.MODE_TRIG_HIGH][recv[7]]
         chaos = recv[8]
-        proto = [ self.PROTO_6C, self.PROTO_6B ][chaos & 0x1]
-        buzzer = [ self.ON, self.OFF ][(chaos & 0x4) >> 2]
-        addr = [ self.ADDR_WORD, self.ADDR_BYTE][(chaos & 0x8) >> 3]
-        ifce = [ self.IFACE_WIEGAND, self.IFACE_SERIAL, self.IFACE_SYRIS ][((chaos & 0x10) >> 4) + ((chaos & 0x2) >> 1)]
-        storage = [ self.STORAGE_PASSWD, self.STORAGE_EPC, self.STORAGE_TID, self.STORAGE_USER, self.STORAGE_MULTI_QUERY, self.STORAGE_ONE_QUERY, self.STORAGE_EAS ][recv[9]]
+        proto = [self.PROTO_6C, self.PROTO_6B][chaos & 0x1]
+        buzzer = [self.ON, self.OFF][(chaos & 0x4) >> 2]
+        addr = [self.ADDR_WORD, self.ADDR_BYTE][(chaos & 0x8) >> 3]
+        ifce = [self.IFACE_WIEGAND, self.IFACE_SERIAL, self.IFACE_SYRIS][((chaos & 0x10) >> 4) + ((chaos & 0x2) >> 1)]
+        storage = [self.STORAGE_PASSWD, self.STORAGE_EPC, self.STORAGE_TID, self.STORAGE_USER, self.STORAGE_MULTI_QUERY,
+                   self.STORAGE_ONE_QUERY, self.STORAGE_EAS][recv[9]]
         offset = recv[10]
         length = recv[11]
         filter_time = recv[12]
         acc_eas = recv[13]
         offset_time = recv[14]
-        w_order = [ self.MSB, self.LSB ][(recv[3] & 0x2) >> 1]
-        w_type = [ self.WIEGAND_26, self.WIEGAND_34 ][recv[3] & 0x1]
+        w_order = [self.MSB, self.LSB][(recv[3] & 0x2) >> 1]
+        w_type = [self.WIEGAND_26, self.WIEGAND_34][recv[3] & 0x1]
         w_inter = recv[4]
         w_pulse_width = recv[5]
         w_pulse_int = recv[6]
-        return (recv[0], mode, proto, buzzer, addr, ifce, storage, offset, length, filter_time, acc_eas, offset_time, w_order, w_type, w_inter, w_pulse_width, w_pulse_int)
+        return (
+            recv[0], mode, proto, buzzer, addr, ifce, storage, offset, length, filter_time, acc_eas, offset_time,
+            w_order,
+            w_type, w_inter, w_pulse_width, w_pulse_int)
 
 
 if len(sys.argv) != 2:
