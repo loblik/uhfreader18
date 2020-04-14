@@ -297,7 +297,7 @@ if len(sys.argv) != 2:
     print("usage: uhf TTY_SERIAL")
     sys.exit(2)
 
-uhfr = UHFReader18()
-uhfr.open_port(sys.argv[1], 57600)
-
-UI(uhfr).run()
+if __name__ == '__main__':
+    uhfr = UHFReader18()
+    uhfr.open_port(sys.argv[1], 57600)
+    UI(uhfr).run()
