@@ -5,10 +5,13 @@ import readline
 import serial
 import sys
 
+
 class UICmd:
-    def __init__(self):
-        self.descArgs = ""
-        self.args = 0
+    def __init__(self, cmd, desc_cmd, desc_args="", args=0):
+        self.desc_args = desc_args
+        self.args = args
+        self.cmd = cmd
+        self.desc_cmd = desc_cmd
 
     def printOk(self, addr, ui):
         ui.printMsg("reader " + hex(addr) + ": OK")
@@ -21,9 +24,7 @@ class UICmd:
 
 class UICmdInfo(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "info"
-        self.descCmd = "gets reader settings (freq, power, scantime)"
+        super().__init__("info", "gets reader settings (freq, power, scantime)")
 
     def run(self, args, reader, ui):
         msg = reader.getReaderInfo()
@@ -35,9 +36,7 @@ class UICmdInfo(UICmd):
 
 class UICmdWorkMode(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "mode"
-        self.descCmd = "gets reader work mode ()"
+        super().__init__("mode", "gets reader work mode ()")
 
     def run(self, args, reader, ui):
          msg = reader.getWorkMode()
@@ -60,11 +59,7 @@ class UICmdWorkMode(UICmd):
 
 class UICmdSetFreq(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "freq"
-        self.args = 2
-        self.descArgs = "LOW HIGH"
-        self.descCmd = "set frequency range"
+        super().__init__("freq", "set frequency range", "LOW HIGH", 2)
 
     def isFreq(self, f):
         if f.isdigit():
@@ -83,12 +78,8 @@ class UICmdSetFreq(UICmd):
 
 class UICmdSetPower(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "power"
-        self.args = 1
-        self.descArgs = "0-30"
-        self.descCmd = "sets power in dBm"
-        
+        super().__init__("power", "sets power in dBm", "0-30", 1)
+
     def validate(self, args, ui):
         return args[0].isdigit() and (int(args[0]) >= 0 and int(args[0]) <= 30)
 
@@ -97,11 +88,7 @@ class UICmdSetPower(UICmd):
 
 class UICmdSetScanTime(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "scantime"
-        self.args = 1
-        self.descArgs = "3-255"
-        self.descCmd = "sets scan time in 100's of ms"
+        super().__init__("scantime", "sets scan time in 100's of ms", "3-255", 1)
 
     def validate(self, args, ui):
         return args[0].isdigit() and (int(args[0]) >= 2 and int(args[0]) <= 255)
@@ -111,9 +98,7 @@ class UICmdSetScanTime(UICmd):
 
 class UICmdQuit(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "quit"
-        self.descCmd = "terminates this prompt"
+        super().__init__("quit", "terminates this prompt")
 
     def run(self, args, reader, ui):
         ui.quit()
@@ -121,9 +106,7 @@ class UICmdQuit(UICmd):
 
 class UICmdHelp(UICmd):
     def __init__(self):
-        super().__init__()
-        self.cmd = "help"
-        self.descCmd = "print commands and usage"
+        super().__init__("help", "print commands and usage")
 
     def run(self, args, reader, ui):
         ui.puts(ui.getHelp())
